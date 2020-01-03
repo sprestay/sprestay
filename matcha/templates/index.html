@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block filter %}
+<div class="jumbotron jumbotron-fluid">
+    <form action="{{ url_for('index') }}" method="POST" id='search_form'>
+        <div style="border: 5px solid black; width: 30%; display: inline-block;">
+            <h1 style="padding-top: 0;">Filters</h1>
+            <div class='form-group'>
+                <input type='number' name='min_age' id='min_age' min='18' step='1' placeholder='min' max='100'> age: <input type='number' step='1' name="max_age" id='max_age' placeholder='max' min='18' max='100'>
+            </div>
+            <div class='form-group'>
+                <input type='number' name="min_distance" id='min_distance' min='0' size=1 step='1' width='100px' placeholder='min'> distance from you: <input type='number' name='max_distance' id='max_distance'  step='1' placeholder='max' min='0'>
+            </div>
+              Popularity:
+              <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" class="custom-control-input" value='all' id='all' name="pop_radio" checked>
+                <label class="custom-control-label" for="all">All users</label>
+              </div>
+              <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" class="custom-control-input" id="low" value='low' name="pop_radio">
+                <label class="custom-control-label" for="low">Low</label>
+              </div>
+              <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" class="custom-control-input" id="medium" value="medium" name="pop_radio">
+                <label class="custom-control-label" for="medium">Medium</label>
+              </div>
+              <div class="custom-control custom-radio custom-control-inline">
+                <input type="radio" class="custom-control-input" id="high" value="high" name="pop_radio">
+                <label class="custom-control-label" for="high">High</label>
+              </div>
+            <div class='form-group' style="display: inline-block;">
+              <input type='number' name="min_tags" id="min_tags" min='0' step='1' placeholder='min' max='20'> Amount of common tags: <input type='number' name='max_tags' id='max_tags' step='1' placeholder='max' min='0' max='20'>
+            </div>
+        </div>
+        <div style="border: 5px solid blue; float: right;">
+          <h1 style="padding-top: 0;">Sorte by: </h1><select id='sort_select' name='for_sort'>
+            <option value="no"></option>
+            <option value="age">By age</option>
+            <option value="distance">By distance</option>
+            <option value="fame">By fame rating</option>
+            <option value="common_tag">By amount of common tags</option>
+          </select>
+        </div>
+        <div style="border: 5px solid orange; float: right;">
+          <div style="display: none;" id='error_regx'><p style='color: red;'>Error in tag_search syntax</p></div>
+          <p>Tags:</p> <input type='text' name='search_tags' id='search_tags'>#tag1 #tag2 ... #tagn
+          <p>Age gap:</p> <input type='number' min=1 max=100 step=1 id="age_gap" name='age_gap'>
+          <p>Fame rating gap:</p> <input type='number' min=1 max=100 id="fame_gap" name="fame_gap">%
+          <p>Location:</p> <input type='text' id="loc_search" name='loc_search'>
+        </div>
+        <button type="submit">Search</button>
+        <button type="reset">Drop</button>
+    </form>
+</div>
+{% endblock %}
+
+
+{% block content %}
+    {% if users %}
+    <div class="album py-5 bg-light" style='display: inline;'> <!--Вставка!-->
+        <div class="container">
+          <div class="row">
+        {% for user in users %}
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+              <div class="img"><img src="{{ url_for('static', filename='photos') ~ '/' ~ user.photo }}" class="img-fluid" alt="Responsive image"></div>
+              <div class="card-body">
+                <p class="card-text" style='font-size: xx-large; display: inline;'><b>{{ user.first_name }}</b>, {{ user.age }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="btn-group">
+                    <a href="{{ url_for('user_page', member=user.id) }}" class="btn btn-primary stretched-link">View</a>
+                    <!-- <a href="#" class="btn btn-secondary stretched-link">Like</a> -->
+                  </div>
+                  <p>{{ user.distance }} km from you</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+        </div>
+        </div>
+        </div>
+        {% else %}
+        <h1> No users on your filters </h1>
+
+    {% endif %}
+{% endblock %}
+
+{% block script %}
+<script>
+  document.getElementById('search_form').onsubmit= function() {
+    if (document.getElementById('min_age').value == ""){
+      document.getElementById('min_age').value = '18';
+    }
+    if (document.getElementById('max_age').value == ""){
+      document.getElementById('max_age').value = '100';
+    }
+    if (document.getElementById('min_distance').value == ""){
+      document.getElementById('min_distance').value = 0
+    }
+    if (document.getElementById('max_distance').value == ""){
+      document.getElementById('max_distance').value = 30000
+    }
+    if (document.getElementById('min_tags').value == ""){
+      document.getElementById("min_tags").value = 0
+    }
+    if (document.getElementById('max_tags').value == ""){
+      document.getElementById("max_tags").value = 20
+    }
+    var data = document.getElementById("search_tags").value
+    if (data != ""){
+      re = new RegExp("^(#[a-z\\s]+)+$", 'ig')
+      if (!re.test(data)){
+        document.getElementById("error_regx").style.display = "block"
+        return false
+      } else {
+        document.getElementById('search_tags').value = data.replace(new RegExp('#', "g"), "")
+        return true
+      }
+    }
+  }
+</script>
+{% endblock %}

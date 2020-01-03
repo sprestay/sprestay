@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel='stylesheet' href="{{ url_for('static', filename='login/floating-labels.css') }}">
+    <title>Matcha/login</title>
+</head>
+        <body>
+            <div style="position: relative; min-height: 100%;"> <!--margin-left: 40%; margin-right: 40%; width: 100%;"-->
+                <div class="text-center mb-4">
+                    <img class="mb-4" src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+                    <h1 class="h3 mb-3 font-weight-normal">Matcha</h1>
+                  </div>
+            <form class="form-signin" id='login_form' style="display:none;"> <!--LOGIN FORM-->
+              <p style="text-align: center;" id='response_in_error'>Please login, to use Matcha</p>
+              <div class="form-label-group">
+                <input type="text" id="usernameL" class="form-control" name='username' placeholder="Username" required autofocus>
+                <label for="usernameL">Username</label>
+              </div>
+        
+              <div class="form-label-group">
+                <input type="password" id="passwordL" class="form-control" name='password' placeholder="Password" required>
+                <label for="passwordL">Password</label>
+              </div>
+              <button type="button" id='reg' onclick='visible(this)' class="btn btn-outline-info btn-sm" style='display: inline;'>Don`t have an account?</button>
+              <button type="button" id='frgt' class="btn btn-outline-info btn-sm" style='display: inline;'>Forgot your password?</button> <!--ДОДЕЛАТЬ-->
+              <button class="btn btn-lg btn-primary btn-block" onclick='sign_in()' style='margin-top: 5px;' type="button">Sign in</button>
+            </form><!-- registration form --> <!-- ATTENTION!-->
+                  <form class='form-signin' action="{{ url_for('create_user') }}" method="POST" id='reg_form' style="display:none; width: 170%; margin-left: -35%; text-align: center;">
+                    {% if error %}
+                      <p>It strange, but error has occupid. {{ error }} </p>
+                    {% endif %}
+                    <div class="form-label-group">
+                      <input type="text" class='form-control' onblur="ajax_check(this)" id='username' placeholder='Your unique username' name="username" required autofocus>
+                      <label for="username">Your unique username</label>
+                      <div id=dusername></div>
+                    </div>
+                    <div class="form-label-group">
+                      <input type="text" class='form-control' onblur="ajax_check(this)" id='inputFirst' name="first_name" placeholder="First name" required>
+                      <label for="inputFirst">Your first name</label>
+                      <div id=dinputFirst></div>
+                    </div>
+                    <div class='form-label-group'>
+                      <input type='text' class='form-control' onblur="ajax_check(this)" id='inputSecond' name='second_name' placeholder="Second name" required>
+                      <label for="inputSecond">Your second name</label>
+                      <div id=dinputSecond></div>
+                    </div>
+                    <div class='form-label-group'>
+                      <input type="email" id="inputEmailR" onblur="ajax_check(this)" class="form-control" name='email' placeholder="Email address" required>
+                      <label for="inputEmailR">Your email address</label>
+                      <div id=dinputEmailR></div>
+                    </div>
+                    <div class='form-label-group'>
+                      <input type="password" id="inputPassword1" onblur="ajax_check(this)" name='password' class="form-control" placeholder="Password" required>
+                      <label for="inputPassword1">Password</label>
+                      <div id=dinputPassword1></div>
+                    </div>
+                    <div class='form-label-group'>
+                      <input type="password" id="inputPassword2" onblur="ajax_check(this)" name='password2' class="form-control" placeholder="Confirm password" required>
+                      <label for="inputPassword2">Confirm password</label>
+                      <div id=dinputPassword2></div>
+                    </div>
+                      <button type="button" id='log' onclick='visible(this)' class="btn btn-outline-info btn-sm">Already registered? Login!</button>
+                      <button class='btn btn-lg btn-primary btn-block' id='register_b' disabled style='margin-top: 5px; margin-bottom: 5px;' type='submit'>Register</button>
+                  </form>
+
+                  <div id='log_reg'>  <!-- кнопки log_reg -->
+                    {% if session['verif_was_sent'] %}
+                      <p style='text-align: center; color: green;'><b>Varification message was send to your email</b></p>
+                    {% endif %}
+                      <button id='log' class="btn btn-lg btn-primary btn-block" style="display: inline;" onclick='visible(this)'>LOGIN</button>
+                      <p style='display: inline; margin-left: 47%;'>OR</p>
+                      <button id='reg' class="btn btn-lg btn-primary btn-block" style="display: inline;" onclick='visible(this)'>REGISTER</button>
+                      <p style='text-align: center;'>&spades; To use Matcha &spades;</p>
+                  </div>
+      <div style='position: absolute; bottom: 0; width: 100%; text-align: center;'><!--footer-->
+          <footer>&copy; sprestay</footer>
+      </div>
+    </div>
+</body>
+</html>
+<script>
+    function visible(event){
+        if (event.id == "log") {
+            document.getElementById('login_form').style.display = 'block';
+            document.getElementById('log_reg').style.display='none';
+            document.getElementById('reg_form').style.display = 'none';
+        } if (event.id == 'reg') {
+            document.getElementById('log_reg').style.display='none';
+            document.getElementById('reg_form').style.display='block';
+            document.getElementById('login_form').style.display = 'none';
+        }
+    }
+    function  ajax_check(event) {
+      if (document.getElementById(event.id).value == ''){
+            document.getElementById('d' + event.id).style.display = 'block'
+            document.getElementById('d' + event.id).className = "invalid-feedback"
+            document.getElementById('d' + event.id).innerHTML = 'Field can`t be empty'
+            document.getElementById(event.id).className = 'form-control is-invalid'
+            document.getElementById('reg_form').style.width = '155%' //КОСТЫЛЬ!
+            document.getElementById('reg_form').style.marginLeft = '-27.5%'
+            before_request_check()
+            return
+      }     
+      $.ajax({
+        type: 'POST',
+        url: "{{ url_for('login') }}",
+        data: {
+          element: event.id,
+          content: document.getElementById(event.id).value,
+        },
+        dataType: "text",
+        success: function (data) {
+          if (data == 'ok'){
+            document.getElementById(event.id).className = 'form-control is-valid'
+            document.getElementById('reg_form').style.width = '155%' //КОСТЫЛЬ!
+            document.getElementById('reg_form').style.marginLeft = '-27.5%'
+            document.getElementById('d' + event.id).style.display = 'none'
+            before_request_check()
+          } else {
+            new_data = JSON.parse(data)
+            console.log(new_data)
+            let str = '';
+            new_data.forEach(function(item, i){
+              str += '<li>' + item + '</li>'
+            });
+            document.getElementById('d' + event.id).style.display = 'block'
+            document.getElementById('d' + event.id).className = "invalid-feedback"
+            document.getElementById('d' + event.id).innerHTML = str
+            document.getElementById(event.id).className = 'form-control is-invalid'
+            document.getElementById('reg_form').style.width = '155%' //КОСТЫЛЬ!
+            document.getElementById('reg_form').style.marginLeft = '-27.5%'
+            before_request_check()
+          }
+        }});
+    }
+    function before_request_check() {
+      var elem = document.getElementById('reg_form')
+      if (elem.getElementsByClassName('form-control is-valid').length == 6 && elem.getElementsByClassName('form-control is-invalid').length == 0){
+        if (document.getElementById('inputPassword1').value == document.getElementById('inputPassword2').value){
+          document.getElementById('register_b').disabled=''
+        } else {
+            document.getElementById('dinputPassword2').style.display = 'block'
+            document.getElementById('dinputPassword2').className = "invalid-feedback"
+            document.getElementById('dinputPassword2').innerHTML = 'Password must be ident'
+            document.getElementById('inputPassword2').className = 'form-control is-invalid'
+            document.getElementById('register_b').disabled='disabled'
+        }
+      } else{document.getElementById('register_b').disabled='disabled'}
+    }
+  
+  function sign_in() {
+    if (document.getElementById('usernameL').value != '' && document.getElementById('passwordL').value != ''){
+      $.ajax({
+        type: "POST",
+        dataType: "text",
+        url: "{{ url_for('sign_check') }}",
+        data: {
+          'username': document.getElementById('usernameL').value,
+          'password': document.getElementById('passwordL').value,
+        },
+        success: function (data) {
+          if (data == 'ok'){
+            window.location.replace("{{ url_for('index') }}");
+          } else {
+            document.getElementById('response_in_error').innerHTML = "<p style='color:red; font-size: 15px;'><b>Wrong username or password</b></p>"
+          }
+        }
+      });
+    }
+    
+  }
+
+  function escape(string) {
+    var htmlEscapes = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+
+    return string.replace(/[&<>"']/g, function(match) {
+        return htmlEscapes[match];
+    });
+}
+</script>
