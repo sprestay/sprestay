@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel='stylesheet' href="{{ url_for('static', filename='login/floating-labels.css') }}">
+    <title>Matcha/forgot</title>
+</head>
+<body>
+    <div style="position: relative; min-height: 100%;"> <!--margin-left: 40%; margin-right: 40%; width: 100%;"-->
+        <div class="text-center mb-4">
+            <img class="mb-4" src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+            <h1 class="h3 mb-3 font-weight-normal">Matcha</h1>
+          </div>
+        <form class="form-signin" id='login_form'> <!--LOGIN FORM-->
+            <p style="text-align: center;" id='response_in_error'>Enter username and email</p>
+            <div class="form-label-group">
+                <input type="text" id="username" class="form-control" name='username' placeholder="Username" required autofocus>
+                <label for="username">Username</label>
+            </div>
+
+            <div class="form-label-group">
+                <input type="email" id="email" class="form-control" name='email' placeholder="Email" required>
+                <label for="Email">Email</label>
+            </div>
+            <button class="btn btn-lg btn-primary btn-block" onclick='send_forgot()' style='margin-top: 5px;' type="button">OK</button>
+        </form>
+    </div>
+</body>
+</html>
+
+<script>
+    function send_forgot(){
+        $.ajax({
+        type: "POST",
+        dataType: "text",
+        url: "{{ url_for('forgot') }}",
+        data: {
+          'username': document.getElementById('username').value,
+          'email': document.getElementById('email').value,
+        },
+        success: function (data) {
+          if (data == 'ok'){
+            document.getElementById('response_in_error').innerHTML = "<p style='color:green; font-size: 15px;'><b>New password was send to your email, <br> dont forget to change it after login!</b></p>"
+            document.getElementById('username').value = ''
+            document.getElementById('email').value = ''
+          } else {
+            document.getElementById('response_in_error').innerHTML = "<p style='color:red; font-size: 15px;'><b>Wrong username or password</b></p>"
+          }
+        }
+      });
+    }
+</script>
