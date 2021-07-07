@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <title>Weather app</title>
+</head>
+<body>
+<div id='content' style="padding-top: 10%;">
+   <div id='form_block' style="text-align: center;">
+            <p>Введите ваш город &nbsp;<input type='text' id='city' requied placeholder="Город"><br>
+                <p style='display: inline;'>Регион (необязательно) &nbsp;</p><input type='text' id='region' placeholder="Регион"><br>
+                    <!-- <p style='display: inline;'>Страна (необязательно) &nbsp;</p><input type='text' id='country' placeholder="Страна"> -->
+                    <br>
+            <button type="button" onclick="form_sender()">OK</button>
+            <h4 id='only_letters' style="color: red; display: none;">Fields should contain only letters (Latin and Cyrillic)</h4>
+    </div>
+    <div style="text-align: center;" id='weather'>
+        <div id='current' style='display: inline-block;'>
+        </div>
+        <div id='forecast' style='display: inline-block; padding-left: 10%;'></div>
+        <p id='rain'></p>
+        <h4 id='rec'></h4>
+</div>
+</body>
+</html>
+<script>
+
+function form_sender(){
+    if (document.getElementById("city").value.trim() != ""){
+        var reg = /^[A-zА-я\s]+$/;
+        if ((!reg.test(document.getElementById("city").value)) | (document.getElementById('region').value.trim() != "" & !reg.test(document.getElementById('region').value))){
+            dropper('wrong search');
+            return
+        }
+        $.ajax({
+            url: "{{ url_for('generate_forecast') }}",
+            type: "POST",
+            dataType: "text",
+            data: {
+                'city': document.getElementById('city').value,
+                'region': document.getElementById('region').value,
+            },
+            success: function(data){
+                if (data=='didn`t find'){
+                    dropper('cant find');
+                    
+                } else {
+                    data = JSON.parse(data)
+                    $("#cant_find").html("");
+                    $("#empty_city_error").html("");
+                    document.getElementById("only_letters").style.display = 'none';
+                    console.log(data[1]);
+                    draw_current(data[0]);
+                    draw_forecast(data[1], data[2]);
+                }
+            }
+        });
+    } else {
+        $("#empty_city_error").html("");
+        document.getElementById("form_block").insertAdjacentHTML('afterbegin', "<h3 style='color:red' id='empty_city_error'>You should indicate your city!</h3>");
+        dropper("no city");
+    }
+}
+
+function draw_current(data){
+    $("#current").html("");
+    current = document.getElementById('current');
+
+    period = document.createElement('h4');
+    period.innerHTML = "Сейчас:"
+
+    img = document.createElement('img');
+    img.src = "https://yastatic.net/weather/i/icons/blueye/color/svg/" + data.icon + ".svg";
+    img.style = "width: 100px";
+
+    temp = document.createElement('p');
+    temp.innerHTML = "Температура: " + data.temp + " &ordm;C";
+
+    wind = document.createElement('p');
+    wind.innerHTML = "Скорость ветра: " + data.wind_speed;
+    current.append(period, img, temp, wind);
+}
+
+function draw_forecast(data, recommendation){
+    forecast = document.getElementById('forecast');
+    $("#forecast").html("");
+    period = document.createElement('h4');
+    period.innerHTML = data[0];
+    data = data[1];
+
+    img = document.createElement('img');
+    img.src = "https://yastatic.net/weather/i/icons/blueye/color/svg/" + data.icon + ".svg";
+    img.style = "width: 100px";
+
+    temp = document.createElement('p');
+    temp.innerHTML = "Средняя температура: " + data.temp_avg + " &ordm;C";
+
+    wind = document.createElement('p');
+    wind.innerHTML = "Скорость ветра: " + data.wind_speed;
+
+    forecast.append(period, img, temp, wind);
+    document.getElementById('rec').innerHTML= recommendation;
+    document.getElementById('rain').innerHTML = "Вероятность осадков: " + data.prec_prob + " %";
+  }
+
+function dropper(flag){
+
+    if (flag == 'cant find'){
+        let h = document.createElement('h4')
+        h.id='cant_find';
+        h.innerHTML = "Sorry. we can`t find you. Try again!"
+        h.style = "color: orange"
+        document.getElementById('form_block').append(h);
+        hide_all();
+        $("#empty_city_error").html("")
+        document.getElementById("only_letters").style.display = "none";
+    } else if (flag == 'wrong search'){
+        document.getElementById('only_letters').style.display = 'block';
+        $("#cant_find").html("");
+        hide_all();
+        $("#empty_city_error").html("");
+    } else if (flag == 'no city'){
+        document.getElementById('only_letters').style.display = 'none';
+        $("#cant_find").html("");
+        hide_all();
+    }
+}
+
+function hide_all(){
+    $("#current").html("");
+    $("#forecast").html("");
+    $("#rec").html("");
+    $("#rain").html(""); 
+}
+</script>
